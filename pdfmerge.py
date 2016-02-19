@@ -2,28 +2,24 @@
 from PyPDF2 import PdfFileWriter, PdfFileReader
 import sys
 
-if len(sys.argv) < 4 and (sys.argv[1] != '-h' and sys.argv[1] != '--help'):
-	sys.exit("Not enough input arguments!")
-
-if sys.argv[1] == '-h' or sys.argv[1] == '--help' or sys.argv[1] == '-help':
-	print("pdfmerge.py [firstPdf.pdf] [SecondPdf.pdf] [Outputname]")
-	print("Note that Outputname should not include '.pdf' extension")
+if "-h" in sys.argv or "--help" in sys.argv:
+	print("Usage: pdfmerge.py [FILE 1] [FILE 2] ... [FILE N] [OUTPUTNAME]")
+	print("\tMerges 'FILE 1' through 'FILE N' into 'OUTPUTNAME.pdf'")
+	print("\tNote that 'OUTPUTNAME' should not include '.pdf' extension")
+	print("\n -h, --help\t Give this help list")
 	sys.exit()
+elif len(sys.argv) < 4:
+	sys.exit("Error: Not enough input arguments!")
 
-#pdf1 = PdfFileReader(file("page1.pdf", "rb"))
-pdf1 = PdfFileReader(file(sys.argv[1], "rb"))
-pdf2 = PdfFileReader(file(sys.argv[2], "rb"))
-outputName = sys.argv[3]
+outputName = sys.argv[-1]
 writer = PdfFileWriter()
-
-for page in range(0, pdf1.getNumPages()):
-	writer.addPage(pdf1.getPage(page))
-
-for page in range(0, pdf2.getNumPages()):
-	writer.addPage(pdf2.getPage(page))
+for inputPDF in sys.argv[1:-1]:
+	currentPDF = PdfFileReader(file(inputPDF, "rb"))
+	for page in range(0, currentPDF.getNumPages()):
+		writer.addPage(currentPDF.getPage(page))
 
 output = file(outputName+".pdf", "wb")
 writer.write(output)
 output.close()
 
-print("The pdfs were succesfully merged!")
+print("The PDFs were succesfully merged!")
