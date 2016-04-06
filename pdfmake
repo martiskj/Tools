@@ -1,0 +1,13 @@
+#!/bin/bash
+filename=${1%.*}
+echo $filename
+if [ -f "$1" ]
+then
+	vim $1 -c ":hardcopy > tmp.ps" -c ":q"
+	ps2pdf tmp.ps $filename.pdf
+	rm tmp.ps
+	echo "$filename.pdf Created Successfully!"
+else
+	echo "$1 not found."
+fi
+

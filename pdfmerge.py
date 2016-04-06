@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# Python version 2.7
 from PyPDF2 import PdfFileWriter, PdfFileReader
 import sys
 
