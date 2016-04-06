@@ -1,12 +1,15 @@
 #!/bin/bash
 filename=${1%.*}
-echo $filename
-if [ -f "$1" ]
-then
-	vim $1 -c ":hardcopy > tmp.ps" -c ":q"
-	ps2pdf tmp.ps $filename.pdf
-	rm tmp.ps
-	echo "$filename.pdf Created Successfully!"
+helpmsg=$'Usage: pdfmake [FILE]\n\tCreates a pdf of the given inputfile if it exists.\n\tKnown functional extensions:\n\t\t.py\n\n -h\tGive this help list'
+if [[ "$@" == "-h" ]]
+	then
+		echo "$helpmsg"
+elif [ -f "$1" ]
+	then
+		vim $1 -c ":hardcopy > tmp.ps" -c ":q"
+		ps2pdf tmp.ps $filename.pdf
+		rm tmp.ps
+		echo "$filename.pdf Created Successfully!"
 else
 	echo "$1 not found."
 fi
