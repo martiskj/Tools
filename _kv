@@ -1,0 +1,14 @@
+#!/bin/sh
+if [ "$#" -ne 1 ]; then
+	echo "Usage: $0 <vault-name>"
+	exit 1
+fi
+
+VAULT_NAME=$1
+
+SECRET=$(az keyvault secret list --vault-name $VAULT_NAME | jq -r '.[].name ' | fzf)
+echo "key: $SECRET"
+
+VALUE=$(az keyvault secret show --vault-name $VAULT_NAME --name $SECRET --query value --output tsv)
+
+echo "val: $VALUE"
