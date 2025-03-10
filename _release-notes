@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Check if two arguments are provided
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <start_commit> <end_commit>"
+    exit 1
+fi
+
+START_COMMIT=$1
+END_COMMIT=$2
+
+# Get commits between the two commits
+COMMITS=$(git log --pretty=format:"%s" "$START_COMMIT..$END_COMMIT")
+
+# Function to extract distinct user stories
+extract_user_story_ids() {
+  local commit_message="$1"
+  echo "$commit_message" | grep -o '#[0-9]\+' | cut -c 2-
+}
+
+# Function to group commits by service and type
+group_commits() {
+    local SERVICE=$1
+    local TYPE=$2
+    echo "$COMMITS" | grep -E "$TYPE\($SERVICE\):" | sed -E 's/^/- /'
+}
+
+# Generate release notes
+echo "# Release Notes $(date +"%d.%m.%Y")"
+echo ""
+echo "## 📌 User Stories"
+
+USER_STORY_IDS=($(echo "$COMMITS" | while IFS= read -r line; do extract_user_story_ids "$line"; done | sort -u))
+for ID in "${USER_STORY_IDS[@]}"; do
+  TITLE=$(az boards query --wiql "SELECT [System.Title] FROM workitems WHERE [System.Id] = '$ID'" | jq '.[].fields."System.Title"')
+  echo "- $ID: $TITLE"
+done
+
+echo ""
+echo "---"
+
+# Detect all services
+SERVICES=$(echo "$COMMITS" | grep -oE "\(\w+\)" | tr -d '()' | sort -u)
+
+for SERVICE in $SERVICES; do
+    echo "## ${SERVICE^} Service"
+    for TYPE in feat fix perf refactor chore docs; do
+        ENTRIES=$(group_commits "$SERVICE" "$TYPE")
+        if [[ -n "$ENTRIES" ]]; then
+            case $TYPE in
+                feat) HEADER="🚀 Features" ;;
+                fix) HEADER="🛠  Fixes" ;;
+                perf|refactor) HEADER="📈 Improvements" ;;
+                chore) HEADER="📦 Chores" ;;
+                docs) HEADER="📝 Documentation" ;;
+            esac
+            echo "$HEADER"
+            echo "$ENTRIES"
+            echo ""
+        fi
+    done
+    # echo "---"
+done
+
