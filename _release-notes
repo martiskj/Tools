@@ -2,8 +2,8 @@
 
 # Check if two arguments are provided
 if [ "$#" -ne 2 ]; then
-    echo "Usage: $0 <start_commit> <end_commit>"
-    exit 1
+  echo "Usage: $0 <start_commit> <end_commit>"
+  exit 1
 fi
 
 START_COMMIT=$1
@@ -20,9 +20,9 @@ extract_user_story_ids() {
 
 # Function to group commits by service and type
 group_commits() {
-    local SERVICE=$1
-    local TYPE=$2
-    echo "$COMMITS" | grep -E "$TYPE\($SERVICE\):" | sed -E 's/^/- /'
+  local SERVICE=$1
+  local TYPE=$2
+  echo "$COMMITS" | grep -iE "$TYPE\($SERVICE\):" | sed -E 's/^/- /'
 }
 
 # Generate release notes
@@ -40,25 +40,24 @@ echo ""
 echo "---"
 
 # Detect all services
-SERVICES=$(echo "$COMMITS" | grep -oE "\(\w+\)" | tr -d '()' | sort -u)
+SERVICES=$(echo "$COMMITS" | grep -oE "\(\w+\)" | tr -d '()' | tr '[:upper:]' '[:lower:]' | sort -u)
 
 for SERVICE in $SERVICES; do
-    echo "## ${SERVICE^} Service"
-    for TYPE in feat fix perf refactor chore docs; do
-        ENTRIES=$(group_commits "$SERVICE" "$TYPE")
-        if [[ -n "$ENTRIES" ]]; then
-            case $TYPE in
-                feat) HEADER="🚀 Features" ;;
-                fix) HEADER="🛠  Fixes" ;;
-                perf|refactor) HEADER="📈 Improvements" ;;
-                chore) HEADER="📦 Chores" ;;
-                docs) HEADER="📝 Documentation" ;;
-            esac
-            echo "$HEADER"
-            echo "$ENTRIES"
-            echo ""
-        fi
-    done
-    # echo "---"
+  echo "## ${SERVICE^}"
+  for TYPE in feat fix perf refactor chore docs; do
+    ENTRIES=$(group_commits "$SERVICE" "$TYPE")
+    if [[ -n "$ENTRIES" ]]; then
+      case $TYPE in
+      feat) HEADER="🚀 Features" ;;
+      fix) HEADER="🛠  Fixes" ;;
+      perf | refactor) HEADER="📈 Improvements" ;;
+      chore) HEADER="📦 Chores" ;;
+      docs) HEADER="📝 Documentation" ;;
+      esac
+      echo "$HEADER"
+      echo "$ENTRIES"
+      echo ""
+    fi
+  done
+  # echo "---"
 done
-
